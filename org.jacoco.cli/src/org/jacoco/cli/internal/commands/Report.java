@@ -21,6 +21,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.test.diff.common.util.JacksonUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.jacoco.cli.internal.Command;
 import org.jacoco.core.analysis.Analyzer;
 import org.jacoco.core.analysis.CoverageBuilder;
@@ -39,6 +41,8 @@ import org.jacoco.report.html.HTMLFormatter;
 import org.jacoco.report.xml.XMLFormatter;
 import org.kohsuke.args4j.Argument;
 import org.kohsuke.args4j.Option;
+
+import com.test.diff.common.domain.ClassInfo;
 
 /**
  * The <code>report</code> command.
@@ -71,6 +75,12 @@ public class Report extends Command {
 
 	@Option(name = "--html", usage = "output directory for the HTML report", metaVar = "<dir>")
 	File html;
+
+	@Option(name = "--diffFiles", usage = "Code difference collection", metaVar = "<charset>")
+	String diffFiles;
+
+	@Option(name = "--filterRules", usage = "When the amount is full, filter unneeded classes", metaVar = "<charset>")
+	String filterRules;
 
 	@Override
 	public String description() {
@@ -105,6 +115,19 @@ public class Report extends Command {
 	private IBundleCoverage analyze(final ExecutionDataStore data,
 			final PrintWriter out) throws IOException {
 		final CoverageBuilder builder = new CoverageBuilder();
+		// 设置增量信息
+		if (StringUtils.isNotEmpty(diffFiles)) {
+			List<ClassInfo> diffList = JacksonUtil.deserializeArray(diffFiles,
+					ClassInfo.class);
+			CoverageBuilder.setDiffList(diffList);
+			CoverageBuilder.setType(CoverageBuilder.TypeEnum.REPORT);
+		}
+		// 设置全量时类过滤规则
+		if (StringUtils.isNotEmpty(filterRules)) {
+			List<String> rules = JacksonUtil.deserializeArray(filterRules,
+					String.class);
+			CoverageBuilder.setFilterRulesLocal(rules);
+		}
 		final Analyzer analyzer = new Analyzer(data, builder);
 		for (final File f : classfiles) {
 			analyzer.analyzeAll(f);

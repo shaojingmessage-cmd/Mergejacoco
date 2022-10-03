@@ -34,6 +34,10 @@ public class RuntimeData {
 
 	private String sessionId;
 
+	private String branchName;
+
+	private String commitId;
+
 	/**
 	 * Creates a new runtime.
 	 */
@@ -41,6 +45,10 @@ public class RuntimeData {
 		store = new ExecutionDataStore();
 		sessionId = "<none>";
 		startTimeStamp = System.currentTimeMillis();
+	}
+
+	public ExecutionDataStore getStore() {
+		return this.store;
 	}
 
 	/**
@@ -67,6 +75,22 @@ public class RuntimeData {
 		return sessionId;
 	}
 
+	public String getBranchName() {
+		return branchName;
+	}
+
+	public void setBranchName(String branchName) {
+		this.branchName = branchName;
+	}
+
+	public String getCommitId() {
+		return commitId;
+	}
+
+	public void setCommitId(String commitId) {
+		this.commitId = commitId;
+	}
+
 	/**
 	 * Collects the current execution data and writes it to the given
 	 * {@link IExecutionDataVisitor} object.
@@ -83,7 +107,7 @@ public class RuntimeData {
 			final ISessionInfoVisitor sessionInfoVisitor, final boolean reset) {
 		synchronized (store) {
 			final SessionInfo info = new SessionInfo(sessionId, startTimeStamp,
-					System.currentTimeMillis());
+					System.currentTimeMillis(), branchName, commitId);
 			sessionInfoVisitor.visitSessionInfo(info);
 			store.accept(executionDataVisitor);
 			if (reset) {

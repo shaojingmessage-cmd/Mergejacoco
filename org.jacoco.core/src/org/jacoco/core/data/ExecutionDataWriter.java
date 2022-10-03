@@ -92,6 +92,8 @@ public class ExecutionDataWriter
 			out.writeUTF(info.getId());
 			out.writeLong(info.getStartTimeStamp());
 			out.writeLong(info.getDumpTimeStamp());
+			out.writeUTF(info.getBranchName());
+			out.writeUTF(info.getCommitId());
 		} catch (final IOException e) {
 			throw new RuntimeException(e);
 		}

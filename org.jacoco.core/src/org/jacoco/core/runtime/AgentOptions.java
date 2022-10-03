@@ -189,10 +189,14 @@ public final class AgentOptions {
 	 */
 	public static final String JMX = "jmx";
 
+	public static final String BRANCH_NAME = "branchName";
+
+	public static final String COMMIT_ID = "commitId";
+
 	private static final Collection<String> VALID_OPTIONS = Arrays.asList(
 			DESTFILE, APPEND, INCLUDES, EXCLUDES, EXCLCLASSLOADER,
 			INCLBOOTSTRAPCLASSES, INCLNOLOCATIONCLASSES, SESSIONID, DUMPONEXIT,
-			OUTPUT, ADDRESS, PORT, CLASSDUMPDIR, JMX);
+			OUTPUT, ADDRESS, PORT, CLASSDUMPDIR, JMX, BRANCH_NAME, COMMIT_ID);
 
 	private final Map<String, String> options;
 
@@ -555,6 +559,14 @@ public final class AgentOptions {
 	 */
 	public void setJmx(final boolean jmx) {
 		setOption(JMX, jmx);
+	}
+
+	public String getBranchName() {
+		return getOption(BRANCH_NAME, "");
+	}
+
+	public String getCommitId() {
+		return getOption(COMMIT_ID, "");
 	}
 
 	private void setOption(final String key, final int value) {

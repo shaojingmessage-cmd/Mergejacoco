@@ -131,7 +131,7 @@
     <jacoco.home.url>http://www.jacoco.org/jacoco</jacoco.home.url>
     <copyright.years>${project.inceptionYear}, 2021</copyright.years>
 
-    <bytecode.version>1.5</bytecode.version>
+    <bytecode.version>1.8</bytecode.version>
     <maven.compiler.source>${bytecode.version}</maven.compiler.source>
     <maven.compiler.target>${bytecode.version}</maven.compiler.target>
 
@@ -139,6 +139,7 @@
     <argLine>${jvm.args}</argLine>
 
     <!-- Dependencies versions -->
+    <diff.common.version>1.0.0</diff.common.version>
     <asm.version>9.2</asm.version>
     <ant.version>1.9.15</ant.version>
     <args4j.version>2.0.28</args4j.version>
@@ -152,12 +153,17 @@
     <sonar.surefire.reportsPath>../${project.artifactId}.test/target/surefire-reports/</sonar.surefire.reportsPath>
 
     <!-- See http://jira.codehaus.org/browse/SONAR-2096 -->
-    <sonar.java.source>1.5</sonar.java.source>
-    <sonar.java.target>1.5</sonar.java.target>
+    <sonar.java.source>1.8</sonar.java.source>
+    <sonar.java.target>1.8</sonar.java.target>
   </properties>
 
   <dependencyManagement>
     <dependencies>
+      <dependency>
+        <groupId>com.test</groupId>
+        <artifactId>diff-common</artifactId>
+        <version>${diff.common.version}</version>
+      </dependency>
       <!-- Project dependencies -->
       <dependency>
         <groupId>${project.groupId}</groupId>

@@ -62,6 +62,11 @@ public class MethodAnalyzerTest implements IProbeIdGenerator {
 		return nextProbeId++;
 	}
 
+	@Override
+	public int getCurrentId() {
+		return 0;
+	}
+
 	// === Scenario: linear Sequence with and without ignore filtering ===
 
 	private void createLinearSequence() {

@@ -10,19 +10,19 @@
  *    Marc R. Hoffmann - initial API and implementation
  *
  *******************************************************************************/
-package org.jacoco.core.internal.flow;
+package org.jacoco.cli.internal;
 
-/**
- * Internal interface to create probe ids unique within a class.
- */
-public interface IProbeIdGenerator {
+import java.io.PrintWriter;
 
-	/**
-	 * Returns the next unique probe id.
-	 *
-	 * @return unique probe id
-	 */
-	int nextId();
+public class JacocoApi {
 
-	int getCurrentId();
+	protected static int result;
+
+	public static int execute(String... args) throws Exception {
+		final PrintWriter out = new PrintWriter(System.out, true);
+		final PrintWriter err = new PrintWriter(System.err, true);
+		result = new Main(args).execute(new PrintWriter(out),
+				new PrintWriter(err));
+		return result;
+	}
 }

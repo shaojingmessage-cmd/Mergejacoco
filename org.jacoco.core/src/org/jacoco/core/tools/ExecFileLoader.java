@@ -130,6 +130,22 @@ public class ExecFileLoader {
 		return sessionInfos;
 	}
 
+	public String getBranchName() {
+		if (sessionInfos.isEmpty()) {
+			return "";
+		}
+		return sessionInfos.getInfos().get(sessionInfos.getInfos().size() - 1)
+				.getBranchName();
+	}
+
+	public String getCommitId() {
+		if (sessionInfos.isEmpty()) {
+			return "";
+		}
+		return sessionInfos.getInfos().get(sessionInfos.getInfos().size() - 1)
+				.getCommitId();
+	}
+
 	/**
 	 * Returns the execution data store with data for all loaded classes.
 	 *

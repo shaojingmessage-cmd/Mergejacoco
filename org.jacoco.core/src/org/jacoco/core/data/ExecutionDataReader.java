@@ -138,7 +138,10 @@ public class ExecutionDataReader {
 		final String id = in.readUTF();
 		final long start = in.readLong();
 		final long dump = in.readLong();
-		sessionInfoVisitor.visitSessionInfo(new SessionInfo(id, start, dump));
+		final String branchName = in.readUTF();
+		final String commitId = in.readUTF();
+		sessionInfoVisitor.visitSessionInfo(
+				new SessionInfo(id, start, dump, branchName, commitId));
 	}
 
 	private void readExecutionData() throws IOException {

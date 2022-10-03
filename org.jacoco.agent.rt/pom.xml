@@ -68,6 +68,46 @@
                   <pattern>org.objectweb.asm</pattern>
                   <shadedPattern>${jacoco.runtime.package.name}.asm</shadedPattern>
                 </relocation>
+                <relocation>
+                  <pattern>org.apache.commons</pattern>
+                  <shadedPattern>${jacoco.runtime.package.name}.lang3</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>com.fasterxml.jackson.core</pattern>
+                  <shadedPattern>${jacoco.runtime.package.name}.core</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>com.fasterxml.jackson.databind</pattern>
+                  <shadedPattern>${jacoco.runtime.package.name}.databind</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>com.fasterxml.jackson.annotation</pattern>
+                  <shadedPattern>${jacoco.runtime.package.name}.annotation</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>com.squareup.okhttp3</pattern>
+                  <shadedPattern>${jacoco.runtime.package.name}.okhttp3</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>okhttp3</pattern>
+                  <shadedPattern>${jacoco.runtime.package.name}.okhttp3</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>kotlin</pattern>
+                  <shadedPattern>${jacoco.runtime.package.name}.kotlin</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>okio</pattern>
+                  <shadedPattern>${jacoco.runtime.package.name}.okio</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>com.alibaba.fastjson2</pattern>
+                  <shadedPattern>${jacoco.runtime.package.name}.fastjson2</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>schema</pattern>
+                  <shadedPattern>${jacoco.runtime.package.name}.schema</shadedPattern>
+                </relocation>
               </relocations>
               <filters>
                 <filter>

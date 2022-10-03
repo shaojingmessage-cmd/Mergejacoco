@@ -16,11 +16,13 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Objects;
 import java.util.StringTokenizer;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import com.test.diff.common.enums.DiffResultTypeEnum;
 import org.jacoco.core.data.ExecutionData;
 import org.jacoco.core.data.ExecutionDataStore;
 import org.jacoco.core.internal.ContentTypeDetector;
@@ -99,7 +101,8 @@ public class Analyzer {
 				coverageVisitor.visitCoverage(coverage);
 			}
 		};
-		return new ClassProbesAdapter(analyzer, false);
+		// return new ClassProbesAdapter(analyzer, false);
+		return new ClassProbesAdapter(analyzer, false, coverage);
 	}
 
 	private void analyzeClass(final byte[] source) {
@@ -110,6 +113,31 @@ public class Analyzer {
 		}
 		if ((reader.getAccess() & Opcodes.ACC_SYNTHETIC) != 0) {
 			return;
+		}
+		// 增量覆盖过滤类
+		if (!Objects.isNull(CoverageBuilder.getDiffList())) {
+			boolean flag = CoverageBuilder.getDiffList().stream()
+					// 删除的类直接过滤掉
+					.filter(classInfo -> classInfo
+							.getDiffType() != DiffResultTypeEnum.DEL)
+					.anyMatch(classInfo -> reader.getClassName()
+							.equals(classInfo.getAsmClassName()));
+			// 不是新增或修改类，不统计覆盖率
+			if (!flag) {
+				return;
+			}
+		} else { // 收集全量覆盖率时：根据匹配和排除的表达式，选择需要的类
+			if (!Objects.isNull(CoverageBuilder.getFilterRulesLocal())) {
+				boolean valid = CoverageBuilder.getFilterRulesLocal().stream()
+						.anyMatch(map -> map.get("includes")
+								.matches(reader.getClassName())
+								&& !map.get("excludes")
+										.matches(reader.getClassName()));
+				// 未匹配成功的，不统计覆盖率
+				if (!valid) {
+					return;
+				}
+			}
 		}
 		final ClassVisitor visitor = createAnalyzingVisitor(classId,
 				reader.getClassName());

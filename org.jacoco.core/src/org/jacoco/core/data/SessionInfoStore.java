@@ -49,6 +49,17 @@ public class SessionInfoStore implements ISessionInfoVisitor {
 		return copy;
 	}
 
+	public void mergeOldInfos(List<SessionInfo> oldInfos) {
+		List<SessionInfo> newInfos = new ArrayList<SessionInfo>(
+				infos.size() + oldInfos.size());
+		// order by desc
+		oldInfos.addAll(this.infos);
+		// clear this infos
+		this.infos.clear();
+		// reset infos
+		this.infos.addAll(newInfos);
+	}
+
 	/**
 	 * Returns a new session info with the given id that contains a merged
 	 * version from all contained version. The start timestamp is the minimum of

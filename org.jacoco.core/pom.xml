@@ -38,6 +38,10 @@
       <groupId>org.ow2.asm</groupId>
       <artifactId>asm-tree</artifactId>
     </dependency>
+    <dependency>
+      <groupId>com.test</groupId>
+      <artifactId>diff-common</artifactId>
+    </dependency>
   </dependencies>
 
   <build>

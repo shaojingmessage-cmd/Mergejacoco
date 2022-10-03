@@ -25,6 +25,10 @@ public class SessionInfo implements Comparable<SessionInfo> {
 
 	private final long dump;
 
+	private String branchName;
+
+	private String commitId;
+
 	/**
 	 * Create a immutable session info with the given data.
 	 *
@@ -43,6 +47,18 @@ public class SessionInfo implements Comparable<SessionInfo> {
 		this.id = id;
 		this.start = start;
 		this.dump = dump;
+	}
+
+	public SessionInfo(final String id, final long start, final long dump,
+			String branchName, String commitId) {
+		if (id == null) {
+			throw new IllegalArgumentException();
+		}
+		this.id = id;
+		this.start = start;
+		this.dump = dump;
+		this.branchName = branchName;
+		this.commitId = commitId;
 	}
 
 	/**
@@ -65,6 +81,14 @@ public class SessionInfo implements Comparable<SessionInfo> {
 	 */
 	public long getDumpTimeStamp() {
 		return dump;
+	}
+
+	public String getBranchName() {
+		return branchName;
+	}
+
+	public String getCommitId() {
+		return commitId;
 	}
 
 	public int compareTo(final SessionInfo other) {

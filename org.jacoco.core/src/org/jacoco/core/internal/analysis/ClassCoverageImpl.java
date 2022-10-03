@@ -14,9 +14,11 @@ package org.jacoco.core.internal.analysis;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import org.jacoco.core.analysis.IClassCoverage;
 import org.jacoco.core.analysis.IMethodCoverage;
+import org.jacoco.core.data.MethodProbesInfo;
 
 /**
  * Implementation of {@link IClassCoverage}.
@@ -31,6 +33,16 @@ public class ClassCoverageImpl extends SourceNodeImpl
 	private String superName;
 	private String[] interfaces;
 	private String sourceFileName;
+
+	private List<MethodProbesInfo> methodProbesInfos = new ArrayList<>();
+
+	public List<MethodProbesInfo> getMethodProbesInfos() {
+		return methodProbesInfos;
+	}
+
+	public void setMethodProbesInfos(List<MethodProbesInfo> methodProbesInfos) {
+		this.methodProbesInfos = methodProbesInfos;
+	}
 
 	/**
 	 * Creates a class coverage data object with the given parameters.

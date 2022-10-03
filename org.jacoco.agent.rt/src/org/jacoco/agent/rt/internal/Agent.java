@@ -124,6 +124,8 @@ public class Agent implements IAgent {
 			if (sessionId == null) {
 				sessionId = createSessionId();
 			}
+			data.setBranchName(options.getBranchName());
+			data.setCommitId(options.getCommitId());
 			data.setSessionId(sessionId);
 			output = createAgentOutput();
 			output.startup(options, data);

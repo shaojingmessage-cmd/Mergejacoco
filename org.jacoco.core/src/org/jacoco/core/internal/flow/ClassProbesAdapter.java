@@ -12,10 +12,17 @@
  *******************************************************************************/
 package org.jacoco.core.internal.flow;
 
+import com.test.diff.common.enums.DiffResultTypeEnum;
+import org.jacoco.core.analysis.CoverageBuilder;
+import org.jacoco.core.data.MethodProbesInfo;
+import org.jacoco.core.internal.analysis.ClassCoverageImpl;
 import org.jacoco.core.internal.instr.InstrSupport;
+import org.jacoco.core.tools.MethodUriAdapter;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.commons.AnalyzerAdapter;
+
+import java.util.Objects;
 
 /**
  * A {@link org.objectweb.asm.ClassVisitor} that calculates probes for every
@@ -35,6 +42,8 @@ public class ClassProbesAdapter extends ClassVisitor
 
 	private String name;
 
+	private ClassCoverageImpl coverage;
+
 	/**
 	 * Creates a new adapter that delegates to the given visitor.
 	 *
@@ -48,6 +57,14 @@ public class ClassProbesAdapter extends ClassVisitor
 		super(InstrSupport.ASM_API_VERSION, cv);
 		this.cv = cv;
 		this.trackFrames = trackFrames;
+	}
+
+	public ClassProbesAdapter(final ClassProbesVisitor cv,
+			final boolean trackFrames, ClassCoverageImpl coverage) {
+		super(InstrSupport.ASM_API_VERSION, cv);
+		this.cv = cv;
+		this.trackFrames = trackFrames;
+		this.coverage = coverage;
 	}
 
 	@Override
@@ -70,7 +87,55 @@ public class ClassProbesAdapter extends ClassVisitor
 			// are not reproducible
 			methodProbes = EMPTY_METHOD_PROBES_VISITOR;
 		} else {
-			methodProbes = mv;
+			if (this.coverage != null) {
+				MethodProbesInfo info = new MethodProbesInfo();
+				info.setMethodName(name);
+				info.setStartIndex(counter);
+				info.setMethodUri(this.name + "." + name + desc);
+				info.setDesc(desc);
+				this.coverage.getMethodProbesInfos().add(info);
+			}
+			// 增量覆盖方法过滤;只统计修改过|新增的方法
+			if (!Objects.isNull(CoverageBuilder.getDiffList())) {
+				boolean flag = CoverageBuilder.getDiffList().stream()
+						.filter(classInfo -> classInfo
+								.getDiffType() != DiffResultTypeEnum.DEL)
+						.filter(classInfo -> this.name
+								.equals(classInfo.getAsmClassName()))
+						.anyMatch(classInfo -> {
+							// 如果是新增类,直接返回true
+							if (classInfo
+									.getDiffType() == DiffResultTypeEnum.ADD) {
+								return true;
+							}
+							boolean b = classInfo.getMethodInfos().stream()
+									// 过滤掉删除的方法
+									.filter(methodInfo -> methodInfo
+											.getDiffType() != DiffResultTypeEnum.DEL)
+									// 过滤掉不是同一方法名
+									.filter(methodInfo -> methodInfo
+											.getMethodName()
+											.equalsIgnoreCase(name))
+									// 检查参数是否一致
+									.anyMatch(methodInfo -> MethodUriAdapter
+											.checkParamsIn(
+													methodInfo.getParams(),
+													desc));
+							return b;
+						});
+				if (flag) {
+					methodProbes = mv;
+				}
+				// 增量覆盖，方法不是新增|修改 过滤掉
+				else {
+					methodProbes = EMPTY_METHOD_PROBES_VISITOR;
+				}
+			}
+			// 全量或者切割方法探针时
+			else {
+				methodProbes = mv;
+			}
+			// methodProbes = mv;
 		}
 		return new MethodSanitizer(null, access, name, desc, signature,
 				exceptions) {
@@ -80,7 +145,7 @@ public class ClassProbesAdapter extends ClassVisitor
 				super.visitEnd();
 				LabelFlowAnalyzer.markLabels(this);
 				final MethodProbesAdapter probesAdapter = new MethodProbesAdapter(
-						methodProbes, ClassProbesAdapter.this);
+						methodProbes, ClassProbesAdapter.this, coverage);
 				if (trackFrames) {
 					final AnalyzerAdapter analyzer = new AnalyzerAdapter(
 							ClassProbesAdapter.this.name, access, name, desc,
@@ -104,6 +169,11 @@ public class ClassProbesAdapter extends ClassVisitor
 
 	public int nextId() {
 		return counter++;
+	}
+
+	@Override
+	public int getCurrentId() {
+		return counter - 1 > -1 ? counter - 1 : -1;
 	}
 
 }
