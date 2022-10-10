@@ -27,6 +27,12 @@
 
   <dependencies>
     <dependency>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
+      <version>1.18.12</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
       <groupId>org.ow2.asm</groupId>
       <artifactId>asm</artifactId>
     </dependency>
@@ -39,8 +45,8 @@
       <artifactId>asm-tree</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.test</groupId>
-      <artifactId>diff-common</artifactId>
+      <groupId>com.ruoyi</groupId>
+      <artifactId>mario-common-repo</artifactId>
     </dependency>
   </dependencies>
 

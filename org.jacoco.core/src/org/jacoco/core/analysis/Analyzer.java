@@ -22,7 +22,7 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-import com.test.diff.common.enums.DiffResultTypeEnum;
+import com.mario.common.repo.enums.ChangeTypeEnum;
 import org.jacoco.core.data.ExecutionData;
 import org.jacoco.core.data.ExecutionDataStore;
 import org.jacoco.core.internal.ContentTypeDetector;
@@ -119,9 +119,9 @@ public class Analyzer {
 			boolean flag = CoverageBuilder.getDiffList().stream()
 					// 删除的类直接过滤掉
 					.filter(classInfo -> classInfo
-							.getDiffType() != DiffResultTypeEnum.DEL)
+							.getType() != ChangeTypeEnum.DELETE)
 					.anyMatch(classInfo -> reader.getClassName()
-							.equals(classInfo.getAsmClassName()));
+							.equals(classInfo.getClassName()));
 			// 不是新增或修改类，不统计覆盖率
 			if (!flag) {
 				return;

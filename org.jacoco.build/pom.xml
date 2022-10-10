@@ -139,7 +139,7 @@
     <argLine>${jvm.args}</argLine>
 
     <!-- Dependencies versions -->
-    <diff.common.version>1.0.0</diff.common.version>
+    <mario.common.version>3.5.0</mario.common.version>
     <asm.version>9.2</asm.version>
     <ant.version>1.9.15</ant.version>
     <args4j.version>2.0.28</args4j.version>
@@ -160,9 +160,9 @@
   <dependencyManagement>
     <dependencies>
       <dependency>
-        <groupId>com.test</groupId>
-        <artifactId>diff-common</artifactId>
-        <version>${diff.common.version}</version>
+        <groupId>com.ruoyi</groupId>
+        <artifactId>mario-common-repo</artifactId>
+        <version>${mario.common.version}</version>
       </dependency>
       <!-- Project dependencies -->
       <dependency>

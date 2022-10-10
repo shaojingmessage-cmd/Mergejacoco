@@ -14,7 +14,7 @@ package org.jacoco.core.analysis;
 
 import java.util.*;
 
-import com.test.diff.common.domain.ClassInfo;
+import com.mario.common.repo.dto.ClassInfo;
 import org.jacoco.core.internal.analysis.BundleCoverageImpl;
 import org.jacoco.core.internal.analysis.SourceFileCoverageImpl;
 import org.jacoco.core.runtime.WildcardMatcher;
@@ -109,6 +109,7 @@ public class CoverageBuilder implements ICoverageVisitor {
 
 	// === ICoverageVisitor ===
 
+	@Override
 	public void visitCoverage(final IClassCoverage coverage) {
 		final String name = coverage.getName();
 		final IClassCoverage dup = classes.put(name, coverage);

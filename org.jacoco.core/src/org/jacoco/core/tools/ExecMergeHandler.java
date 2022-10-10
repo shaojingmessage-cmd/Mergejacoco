@@ -12,13 +12,9 @@
  *******************************************************************************/
 package org.jacoco.core.tools;
 
-import com.test.diff.common.domain.ClassInfo;
-import com.test.diff.common.domain.MethodInfo;
-import com.test.diff.common.enums.DiffResultTypeEnum;
-import com.test.diff.common.enums.HttpCodeEnum;
-import com.test.diff.common.util.CollectionUtil;
-import com.test.diff.common.util.HttpUtil;
-import com.test.diff.common.util.JacksonUtil;
+import com.mario.common.repo.dto.ClassInfo;
+import com.mario.common.repo.dto.MethodInfo;
+import com.mario.common.repo.enums.ChangeTypeEnum;
 import org.apache.commons.lang3.StringUtils;
 import org.jacoco.core.analysis.Analyzer;
 import org.jacoco.core.analysis.CoverageBuilder;
@@ -27,6 +23,8 @@ import org.jacoco.core.data.ExecutionData;
 import org.jacoco.core.data.ExecutionDataStore;
 import org.jacoco.core.data.MethodProbesInfo;
 import org.jacoco.core.internal.analysis.ClassCoverageImpl;
+import org.jacoco.core.utils.HttpUtils;
+import org.jacoco.core.utils.JacksonUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -40,9 +38,16 @@ import java.util.*;
  **/
 public class ExecMergeHandler {
 
-	private static final String DEFAULT_DIFF_IP = "127.0.0.1";
-	private static final String DIFF_API_PATH = "/api/diff/getDiffResult";
-	private static final String CLASSFILE_API_PATH = "/api/file/class/path";
+	private static final int HTTP_CODE = 200;
+
+	/**
+	 * 获取code diff 接口
+	 */
+	private static final String DIFF_API_URL = "http://127.0.0.1:%s/api/code/diff/list";
+	/**
+	 * 查找指定class文件路径 接口
+	 */
+	private static final String CLASSFILE_API_URL = "http://127.0.0.1:%s/api/source/classfile";
 
 	/**
 	 * 项目id
@@ -50,18 +55,18 @@ public class ExecMergeHandler {
 	private int projectId;
 
 	/**
-	 * code-diff 服务端口
+	 * coverage 服务端口
 	 */
-	private int diffPort;
+	private int coveragePort;
 
 	/**
 	 * 日志输出
 	 */
 	private PrintWriter out;
 
-	public ExecMergeHandler(int projectId, int diffPort) {
+	public ExecMergeHandler(int projectId, int coveragePort) {
 		this.projectId = projectId;
-		this.diffPort = diffPort;
+		this.coveragePort = coveragePort;
 		this.out = new PrintWriter(System.out);
 	}
 
@@ -129,21 +134,18 @@ public class ExecMergeHandler {
 		// all diff class asm name
 		List<String> diffClassNames = new ArrayList<String>();
 		for (ClassInfo classInfo : diffClasses) {
-			diffClassNames.add(classInfo.getAsmClassName());
-			if (classInfo.getDiffType() == DiffResultTypeEnum.MODIFY) {
-				diffModifyClassNames.add(classInfo.getAsmClassName());
-				newModifyClassFiles.add(new File(getClassFilePath(projectId,
-						newExec.getBranchName(), newExec.getCommitId(),
-						classInfo.getAsmClassName())));
-				oldModifyClassFiles.add(new File(getClassFilePath(projectId,
-						oldExec.getBranchName(), oldExec.getCommitId(),
-						classInfo.getAsmClassName())));
+			diffClassNames.add(classInfo.getClassName());
+			if (classInfo.getType() == ChangeTypeEnum.MODIFY) {
+				diffModifyClassNames.add(classInfo.getClassName());
+				newModifyClassFiles.add(new File(
+						getNewClassFilePath(projectId, newExec, classInfo)));
+				oldModifyClassFiles.add(new File(
+						getOldClassFilePath(projectId, oldExec, classInfo)));
 			}
-			if (classInfo.getDiffType() == DiffResultTypeEnum.DEL) {
-				diffDelClassNames.add(classInfo.getAsmClassName());
-				deleteClassFiles.add(new File(getClassFilePath(projectId,
-						oldExec.getBranchName(), oldExec.getCommitId(),
-						classInfo.getAsmClassName())));
+			if (classInfo.getType() == ChangeTypeEnum.DELETE) {
+				diffDelClassNames.add(classInfo.getClassName());
+				deleteClassFiles.add(new File(
+						getOldClassFilePath(projectId, oldExec, classInfo)));
 			}
 		}
 		Map<String, IClassCoverage> newCoverageMap = classAnalysis(
@@ -277,8 +279,8 @@ public class ExecMergeHandler {
 		for (MethodInfo methodInfo : methodInfos) {
 			if (StringUtils.isNotBlank(methodInfo.getMethodName())
 					&& methodInfo.getMethodName().equals(methodName)
-					&& MethodUriAdapter.checkParamsIn(methodInfo.getParams(),
-							desc)) {
+					&& MethodUriAdapter
+							.checkParamsIn(methodInfo.getParameters(), desc)) {
 				return true;
 
 			}
@@ -289,7 +291,7 @@ public class ExecMergeHandler {
 	private List<MethodInfo> getDiffMethods(List<ClassInfo> classInfos,
 			String classFullName) {
 		for (ClassInfo classInfo : classInfos) {
-			if (classFullName.equals(classInfo.getAsmClassName())) {
+			if (classFullName.equals(classInfo.getClassName())) {
 				return classInfo.getMethodInfos();
 			}
 		}
@@ -322,39 +324,55 @@ public class ExecMergeHandler {
 	 *
 	 * @param projectId
 	 * @param branchName
-	 * @param newCommit
-	 * @param oldCommit
+	 * @param baseCommitId
+	 * @param nowCommitId
 	 * @return
 	 */
 	public List<ClassInfo> getCodeDiff(int projectId, String branchName,
-			String newCommit, String oldCommit) throws IOException {
+			String baseCommitId, String nowCommitId) throws IOException {
 
-		StringBuilder url = new StringBuilder();
-		url.append("http://").append(DEFAULT_DIFF_IP).append(":")
-				.append(diffPort).append(DIFF_API_PATH);
+		String url = String.format(DIFF_API_URL, coveragePort);
 
-		Map<String, String> data = new HashMap<String, String>();
+		Map<String, String> data = new HashMap<String, String>(6);
 		data.put("id", String.valueOf(projectId));
-		data.put("newVersion", branchName);
-		data.put("oldVersion", branchName);
-		data.put("diffTypeCode", String.valueOf(1));// 暂时先写死，因为不支持不同分支合并，所以这里只会是commit
+		data.put("baseVersion", branchName);
+		data.put("nowVersion", branchName);
 		// diff
-		data.put("oldCommitId", oldCommit);
-		data.put("newCommitId", newCommit);
+		data.put("baseCommitId", baseCommitId);
+		data.put("nowCommitId", nowCommitId);
+		// 暂时先写死，因为不支持不同分支合并，所以这里只会是commit
+		data.put("diffType", "1");
 
-		HttpUtil.Resp resp = HttpUtil.doPost(url.toString(),
-				CollectionUtil.map2JsonString(data));
+		HttpUtils.Resp resp = HttpUtils.doPost(url, data);
 
 		if (!resp.isSuccess()) {
 			throw new RuntimeException("接口" + url + ": 请求失败！");
 		}
-		HttpUtil.Result result = resp.getResult();
-		if (HttpCodeEnum.SUCCESS.getCode() == result.getCode()) {
-			return JacksonUtil.deserializeArray(result.getData().toString(),
+		HttpUtils.Result result = resp.getResult();
+		if (HTTP_CODE == result.getCode()) {
+			return JacksonUtils.deserializeArray(result.getData().toString(),
 					ClassInfo.class);
 		} else {
 			throw new RuntimeException(result.getMsg());
 		}
+	}
+
+	private String getNewClassFilePath(int projectId, ExecFileLoader exec,
+			ClassInfo classInfo) {
+		if (StringUtils.isNotEmpty(classInfo.getNewClassFile())) {
+			return classInfo.getNewClassFile();
+		}
+		return getClassFilePath(projectId, exec.getBranchName(),
+				exec.getCommitId(), classInfo.getClassName());
+	}
+
+	private String getOldClassFilePath(int projectId, ExecFileLoader exec,
+			ClassInfo classInfo) {
+		if (StringUtils.isNotEmpty(classInfo.getOldClassFile())) {
+			return classInfo.getOldClassFile();
+		}
+		return getClassFilePath(projectId, exec.getBranchName(),
+				exec.getCommitId(), classInfo.getClassName());
 	}
 
 	/**
@@ -368,23 +386,18 @@ public class ExecMergeHandler {
 	 */
 	public String getClassFilePath(int projectId, String branchName,
 			String commitId, String className) {
-
-		StringBuilder url = new StringBuilder();
-		url.append("http://").append(DEFAULT_DIFF_IP).append(":")
-				.append(diffPort).append(CLASSFILE_API_PATH);
+		String url = String.format(CLASSFILE_API_URL, coveragePort);
 		Map<String, String> data = new HashMap<>();
 		data.put("id", String.valueOf(projectId));
 		data.put("branch", branchName);
 		data.put("className", className);
 		data.put("commitId", commitId);
-		HttpUtil.Resp resp = HttpUtil.doPost(url.toString(),
-				CollectionUtil.map2JsonString(data));
+		HttpUtils.Resp resp = HttpUtils.doGet(url, data);
 		if (!resp.isSuccess()) {
-			// out.println("获取" + className + "class文件路径失败");
 			throw new RuntimeException("接口" + url + ": 请求失败！");
 		}
-		HttpUtil.Result result = resp.getResult();
-		if (HttpCodeEnum.SUCCESS.getCode() == result.getCode()) {
+		HttpUtils.Result result = resp.getResult();
+		if (HTTP_CODE == result.getCode()) {
 			return result.getData().toString();
 		}
 		throw new RuntimeException(

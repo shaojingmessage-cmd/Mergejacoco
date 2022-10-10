@@ -12,7 +12,7 @@
  *******************************************************************************/
 package org.jacoco.core.internal.flow;
 
-import com.test.diff.common.enums.DiffResultTypeEnum;
+import com.mario.common.repo.enums.ChangeTypeEnum;
 import org.jacoco.core.analysis.CoverageBuilder;
 import org.jacoco.core.data.MethodProbesInfo;
 import org.jacoco.core.internal.analysis.ClassCoverageImpl;
@@ -99,19 +99,18 @@ public class ClassProbesAdapter extends ClassVisitor
 			if (!Objects.isNull(CoverageBuilder.getDiffList())) {
 				boolean flag = CoverageBuilder.getDiffList().stream()
 						.filter(classInfo -> classInfo
-								.getDiffType() != DiffResultTypeEnum.DEL)
+								.getType() != ChangeTypeEnum.DELETE)
 						.filter(classInfo -> this.name
-								.equals(classInfo.getAsmClassName()))
+								.equals(classInfo.getClassName()))
 						.anyMatch(classInfo -> {
 							// 如果是新增类,直接返回true
-							if (classInfo
-									.getDiffType() == DiffResultTypeEnum.ADD) {
+							if (classInfo.getType() == ChangeTypeEnum.ADD) {
 								return true;
 							}
 							boolean b = classInfo.getMethodInfos().stream()
 									// 过滤掉删除的方法
 									.filter(methodInfo -> methodInfo
-											.getDiffType() != DiffResultTypeEnum.DEL)
+											.getType() != ChangeTypeEnum.DELETE)
 									// 过滤掉不是同一方法名
 									.filter(methodInfo -> methodInfo
 											.getMethodName()
@@ -119,7 +118,7 @@ public class ClassProbesAdapter extends ClassVisitor
 									// 检查参数是否一致
 									.anyMatch(methodInfo -> MethodUriAdapter
 											.checkParamsIn(
-													methodInfo.getParams(),
+													methodInfo.getParameters(),
 													desc));
 							return b;
 						});
@@ -167,6 +166,7 @@ public class ClassProbesAdapter extends ClassVisitor
 
 	// === IProbeIdGenerator ===
 
+	@Override
 	public int nextId() {
 		return counter++;
 	}

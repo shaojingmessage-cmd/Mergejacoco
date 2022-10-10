@@ -21,7 +21,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import com.test.diff.common.util.JacksonUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.jacoco.cli.internal.Command;
 import org.jacoco.core.analysis.Analyzer;
@@ -30,6 +29,7 @@ import org.jacoco.core.analysis.IBundleCoverage;
 import org.jacoco.core.analysis.IClassCoverage;
 import org.jacoco.core.data.ExecutionDataStore;
 import org.jacoco.core.tools.ExecFileLoader;
+import org.jacoco.core.utils.JacksonUtils;
 import org.jacoco.report.DirectorySourceFileLocator;
 import org.jacoco.report.FileMultiReportOutput;
 import org.jacoco.report.IReportVisitor;
@@ -41,8 +41,6 @@ import org.jacoco.report.html.HTMLFormatter;
 import org.jacoco.report.xml.XMLFormatter;
 import org.kohsuke.args4j.Argument;
 import org.kohsuke.args4j.Option;
-
-import com.test.diff.common.domain.ClassInfo;
 
 /**
  * The <code>report</code> command.
@@ -117,14 +115,15 @@ public class Report extends Command {
 		final CoverageBuilder builder = new CoverageBuilder();
 		// 设置增量信息
 		if (StringUtils.isNotEmpty(diffFiles)) {
-			List<ClassInfo> diffList = JacksonUtil.deserializeArray(diffFiles,
-					ClassInfo.class);
+			List<com.mario.common.repo.dto.ClassInfo> diffList = JacksonUtils
+					.deserializeArray(diffFiles,
+							com.mario.common.repo.dto.ClassInfo.class);
 			CoverageBuilder.setDiffList(diffList);
 			CoverageBuilder.setType(CoverageBuilder.TypeEnum.REPORT);
 		}
 		// 设置全量时类过滤规则
 		if (StringUtils.isNotEmpty(filterRules)) {
-			List<String> rules = JacksonUtil.deserializeArray(filterRules,
+			List<String> rules = JacksonUtils.deserializeArray(filterRules,
 					String.class);
 			CoverageBuilder.setFilterRulesLocal(rules);
 		}

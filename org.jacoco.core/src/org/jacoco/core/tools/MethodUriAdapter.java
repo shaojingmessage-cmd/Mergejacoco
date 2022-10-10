@@ -12,9 +12,9 @@
  *******************************************************************************/
 package org.jacoco.core.tools;
 
-import com.test.diff.common.domain.MethodInfo;
-import org.apache.commons.lang3.StringUtils;
 import org.objectweb.asm.Type;
+
+import java.util.List;
 
 /**
  * @author wl
@@ -29,18 +29,15 @@ public class MethodUriAdapter {
 	 * @param desc
 	 * @return
 	 */
-	public static boolean checkParamsIn(String params, String desc) {
+	public static boolean checkParamsIn(List<String> params, String desc) {
 		// 解析ASM获取的参数
 		Type[] argumentTypes = Type.getArgumentTypes(desc);
 		// 说明是无参数的方法，匹配成功
-		if (params.length() == 0 && argumentTypes.length == 0) {
+		if (params.size() == 0 && argumentTypes.length == 0) {
 			return Boolean.TRUE;
 		}
-		// 切割符号来自：com/test/diff/services/internal/JavaFileCodeComparator.MethodVisitor#visit方法中定义
-		String[] diffParams = params.split(";");
 		// 只有参数数量完全相等才做下一次比较，Type格式：I C Ljava/lang/String;
-		if (diffParams.length > 0
-				&& argumentTypes.length == diffParams.length) {
+		if (params.size() > 0 && argumentTypes.length == params.size()) {
 			for (int i = 0; i < argumentTypes.length; i++) {
 				// 去掉包名只保留最后一位匹配,getClassName格式： int java/lang/String
 				String[] args = argumentTypes[i].getClassName().split("\\.");
@@ -49,7 +46,7 @@ public class MethodUriAdapter {
 				if (arg.contains("$")) {
 					arg = arg.split("\\$")[arg.split("\\$").length - 1];
 				}
-				if (!diffParams[i].contains(arg)) {
+				if (!params.get(i).contains(arg)) {
 					return Boolean.FALSE;
 				}
 			}
