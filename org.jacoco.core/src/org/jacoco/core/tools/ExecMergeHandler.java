@@ -12,6 +12,8 @@
  *******************************************************************************/
 package org.jacoco.core.tools;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.mario.common.repo.dto.ClassInfo;
 import com.mario.common.repo.dto.MethodInfo;
 import com.mario.common.repo.enums.ChangeTypeEnum;
@@ -342,8 +344,8 @@ public class ExecMergeHandler {
 		data.put("nowCommitId", nowCommitId);
 		// 暂时先写死，因为不支持不同分支合并，所以这里只会是commit
 		data.put("diffType", "1");
-
-		HttpUtils.Resp resp = HttpUtils.doPost(url, data);
+		String jsonData = new GsonBuilder().create().toJson(data);
+		HttpUtils.Resp resp = HttpUtils.doPost(url, jsonData);
 
 		if (!resp.isSuccess()) {
 			throw new RuntimeException("接口" + url + ": 请求失败！");

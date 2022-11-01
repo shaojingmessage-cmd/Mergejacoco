@@ -50,14 +50,12 @@ public class SessionInfoStore implements ISessionInfoVisitor {
 	}
 
 	public void mergeOldInfos(List<SessionInfo> oldInfos) {
-		List<SessionInfo> newInfos = new ArrayList<SessionInfo>(
-				infos.size() + oldInfos.size());
 		// order by desc
 		oldInfos.addAll(this.infos);
 		// clear this infos
 		this.infos.clear();
 		// reset infos
-		this.infos.addAll(newInfos);
+		this.infos.addAll(oldInfos);
 	}
 
 	/**
